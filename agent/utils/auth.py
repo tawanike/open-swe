@@ -262,6 +262,9 @@ async def leave_failure_comment(
             "Auth failure for GitHub-triggered run (no token to post comment): %s", message
         )
         return
+    if source == "assist":
+        logger.warning("Auth failure for Assist-triggered run: %s", message)
+        return
     raise ValueError(f"Unknown source: {source}")
 
 
@@ -383,6 +386,14 @@ async def resolve_github_token(config: RunnableConfig, thread_id: str) -> tuple[
         raise RuntimeError(f"GitHub auth failed for thread {thread_id}: missing source")
 
     try:
+        # Assist source: use GITHUB_TOKEN env var directly
+        if source == "assist":
+            token = os.environ.get("GITHUB_TOKEN", "")
+            if not token:
+                raise ValueError("GITHUB_TOKEN env var not set for assist source")
+            encrypted = await persist_encrypted_github_token(thread_id, token)
+            return token, encrypted
+
         if source == "github":
             cached_token, cached_encrypted = await get_github_token_from_thread(thread_id)
             if cached_token and cached_encrypted:
