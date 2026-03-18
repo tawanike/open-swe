@@ -5,6 +5,7 @@ from agent.integrations.langsmith import create_langsmith_sandbox
 from agent.integrations.local import create_local_sandbox
 from agent.integrations.modal import create_modal_sandbox
 from agent.integrations.runloop import create_runloop_sandbox
+from agent.integrations.ventaw import create_ventaw_sandbox
 
 SANDBOX_FACTORIES = {
     "langsmith": create_langsmith_sandbox,
@@ -12,6 +13,7 @@ SANDBOX_FACTORIES = {
     "modal": create_modal_sandbox,
     "runloop": create_runloop_sandbox,
     "local": create_local_sandbox,
+    "ventaw": create_ventaw_sandbox,
 }
 
 

@@ -23,6 +23,7 @@ dependencies = [
     "langchain-daytona>=0.0.3",
     "langchain-modal>=0.0.2",
     "langchain-runloop>=0.0.3",
+    "ventaw>=0.1.6",
 ]
 
 [project.optional-dependencies]

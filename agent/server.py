@@ -39,6 +39,7 @@ from .tools import (
     github_comment,
     http_request,
     linear_comment,
+    pairly_update,
     slack_thread_reply,
 )
 from .utils.auth import resolve_github_token
@@ -380,6 +381,7 @@ async def get_agent(config: RunnableConfig) -> Pregel:  # noqa: PLR0915
             http_request,
             fetch_url,
             commit_and_open_pr,
+            pairly_update,
             linear_comment,
             slack_thread_reply,
             github_comment,

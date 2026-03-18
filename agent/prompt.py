@@ -256,6 +256,23 @@ When you have completed your implementation, follow these steps in order:
 Always call `commit_and_open_pr` followed by the appropriate reply tool once implementation is complete and code quality checks pass."""
 
 
+PAIRLY_SECTION = """---
+
+### Pairly Task Management
+
+When you are working on a task that has a Pairly task ID:
+- Update the task status to "in_progress" when you start work using the `pairly_update` tool
+- Add comments with progress updates at key milestones
+- When opening a PR, add the PR URL as a comment on the Pairly task
+- Update the task status to "done" when the PR is opened and ready for review
+
+Task status values: "todo", "in_progress", "done"
+
+Example:
+- pairly_update(action="update_status", task_id="...", status="in_progress")
+- pairly_update(action="add_comment", task_id="...", comment="PR opened: https://github.com/...")
+"""
+
 SYSTEM_PROMPT = (
     WORKING_ENV_SECTION
     + FILE_MANAGEMENT_SECTION
@@ -270,6 +287,7 @@ SYSTEM_PROMPT = (
     + COMMUNICATION_SECTION
     + EXTERNAL_UNTRUSTED_COMMENTS_SECTION
     + COMMIT_PR_SECTION
+    + PAIRLY_SECTION
     + """
 
 {agents_md_section}
