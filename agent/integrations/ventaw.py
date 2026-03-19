@@ -44,6 +44,25 @@ class VentawBackend(BaseSandbox):
             truncated=False,
         )
 
+    def upload_files(self, files: list[tuple[str, bytes]]) -> list:
+        """Upload files to the sandbox."""
+        results = []
+        for path, content in files:
+            self._sandbox.write_file(path, content.decode("utf-8", errors="replace"))
+            results.append({"path": path, "success": True})
+        return results
+
+    def download_files(self, paths: list[str]) -> list:
+        """Download files from the sandbox."""
+        results = []
+        for path in paths:
+            try:
+                content = self._sandbox.read_file(path)
+                results.append({"path": path, "content": content.encode("utf-8")})
+            except Exception as e:
+                results.append({"path": path, "error": str(e)})
+        return results
+
     def read(self, path: str) -> str:
         """Read a file from the sandbox."""
         return self._sandbox.read_file(path)
