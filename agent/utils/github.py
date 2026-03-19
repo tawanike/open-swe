@@ -122,7 +122,7 @@ def setup_git_credentials(sandbox_backend: SandboxBackendProtocol, github_token:
     The write API sends content in the HTTP body (not via a shell command),
     so the token never appears in shell history or process listings.
     """
-    sandbox_backend.write(_CRED_FILE_PATH, f"https://git:{github_token}@github.com\n")
+    sandbox_backend.write(_CRED_FILE_PATH, f"https://x-access-token:{github_token}@github.com\n")
     sandbox_backend.execute(f"chmod 600 {_CRED_FILE_PATH}")
 
 
