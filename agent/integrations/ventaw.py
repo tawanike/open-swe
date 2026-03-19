@@ -6,16 +6,22 @@ import time
 
 import ventaw
 from deepagents.backends.protocol import ExecuteResponse
+from deepagents.backends.sandbox import BaseSandbox
 from ventaw.resources.sandbox import Sandbox
 
 logger = logging.getLogger(__name__)
 
-SANDBOX_READY_TIMEOUT = 120  # seconds
-SANDBOX_POLL_INTERVAL = 3  # seconds
+SANDBOX_READY_TIMEOUT = 120
+SANDBOX_POLL_INTERVAL = 3
 
 
-class VentawBackend:
-    """Ventaw sandbox backend implementing SandboxBackendProtocol."""
+class VentawBackend(BaseSandbox):
+    """Ventaw sandbox backend extending BaseSandbox.
+
+    Only execute() needs to be implemented — BaseSandbox provides
+    all file operations (read, write, ls_info, grep_raw, etc.)
+    by delegating to execute() via shell commands.
+    """
 
     def __init__(self, sandbox: Sandbox):
         self._sandbox = sandbox
@@ -23,17 +29,6 @@ class VentawBackend:
     @property
     def id(self) -> str:
         return self._sandbox.id
-
-    def read(self, path: str) -> str:
-        """Read a file from the sandbox."""
-        return self._sandbox.read_file(path)
-
-    def write(self, path: str, content: str) -> None:
-        """Write a file to the sandbox."""
-        # Use execute to write files since the file API may fail on certain paths
-        import shlex
-        escaped_content = shlex.quote(content)
-        self._sandbox.execute(f"mkdir -p $(dirname {shlex.quote(path)}) && echo -n {escaped_content} > {shlex.quote(path)}", "bash")
 
     def execute(self, command: str, *, timeout: int | None = None) -> ExecuteResponse:
         result = self._sandbox.execute(command, "bash")
@@ -47,6 +42,20 @@ class VentawBackend:
             output=output,
             exit_code=exit_code,
             truncated=False,
+        )
+
+    def read(self, path: str) -> str:
+        """Read a file from the sandbox."""
+        return self._sandbox.read_file(path)
+
+    def write(self, path: str, content: str) -> None:
+        """Write a file to the sandbox."""
+        # Use execute to write files — more reliable across all paths
+        import shlex
+        escaped_content = shlex.quote(content)
+        self._sandbox.execute(
+            f"mkdir -p $(dirname {shlex.quote(path)}) && printf %s {escaped_content} > {shlex.quote(path)}",
+            "bash",
         )
 
 
@@ -76,27 +85,12 @@ def _wait_for_sandbox_ready(sandbox: Sandbox) -> Sandbox:
 
 
 def create_ventaw_sandbox(sandbox_id: str | None = None) -> VentawBackend:
-    """Create or reconnect to a Ventaw sandbox.
-
-    Environment variables:
-        VENTAW_API_KEY: API key for Ventaw
-        VENTAW_API_URL: Base URL (optional)
-        VENTAW_SANDBOX_TEMPLATE: Template name (default: "nextjs")
-        VENTAW_SANDBOX_NAME: Sandbox name (default: "open-swe-sandbox")
-        VENTAW_SANDBOX_ID: Reuse an existing sandbox instead of creating a new one
-
-    Args:
-        sandbox_id: Optional existing sandbox ID to reconnect to.
-
-    Returns:
-        VentawBackend implementing SandboxBackendProtocol.
-    """
+    """Create or reconnect to a Ventaw sandbox."""
     ventaw.api_key = os.environ.get("VENTAW_API_KEY")
     base_url = os.environ.get("VENTAW_API_URL")
     if base_url:
         ventaw.api_base = base_url
 
-    # Check for env var override
     env_sandbox_id = os.environ.get("VENTAW_SANDBOX_ID")
     effective_id = sandbox_id or env_sandbox_id
 
