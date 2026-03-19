@@ -30,7 +30,10 @@ class VentawBackend:
 
     def write(self, path: str, content: str) -> None:
         """Write a file to the sandbox."""
-        self._sandbox.write_file(path, content)
+        # Use execute to write files since the file API may fail on certain paths
+        import shlex
+        escaped_content = shlex.quote(content)
+        self._sandbox.execute(f"mkdir -p $(dirname {shlex.quote(path)}) && echo -n {escaped_content} > {shlex.quote(path)}", "bash")
 
     def execute(self, command: str, *, timeout: int | None = None) -> ExecuteResponse:
         result = self._sandbox.execute(command, "bash")
