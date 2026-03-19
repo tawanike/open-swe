@@ -24,6 +24,14 @@ class VentawBackend:
     def id(self) -> str:
         return self._sandbox.id
 
+    def read(self, path: str) -> str:
+        """Read a file from the sandbox."""
+        return self._sandbox.read_file(path)
+
+    def write(self, path: str, content: str) -> None:
+        """Write a file to the sandbox."""
+        self._sandbox.write_file(path, content)
+
     def execute(self, command: str, *, timeout: int | None = None) -> ExecuteResponse:
         result = self._sandbox.execute(command, "bash")
         stdout = result.get("stdout", "") if isinstance(result, dict) else str(result)
